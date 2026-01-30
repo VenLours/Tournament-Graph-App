@@ -7,13 +7,14 @@ import requests
 from io import BytesIO
 from flask import Flask, request, send_file, render_template_string
 import io
+import json
 
 
 # =========================
 # Helper Functions
 # =========================
 
-def generate_image_url(pokemon, mega=False, paldean=False, galar=False):
+def generate_image_url(pokemon, mega=False, paldean=False, galar=False, crown=False):
     strr = pokemon.lower()
     if mega:
         strr += "-mega"
@@ -21,6 +22,8 @@ def generate_image_url(pokemon, mega=False, paldean=False, galar=False):
         strr += "-paldea"
     elif galar:
         strr += "-galar"
+    elif crown:
+        strr += "-crowned"
     strr = "https://r2.limitlesstcg.net/pokemon/gen9/" + strr + ".png"
     return strr
 
@@ -103,12 +106,19 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
     labels = df["Name"].tolist()
     sizes = df["Value"].tolist()
 
+
     colors = []
-    if "Color" in df.columns:
-        for c in df["Color"]:
-            colors.append(parse_color(c))
-    else:
-        colors = [None] * len(df)
+    try:
+        with open('mon_to_color.json', 'r', encoding='utf-8') as file:
+            poke_map = json.load(file)
+        for label in labels:
+            colors.append(parse_color(poke_map[label]))
+    except FileNotFoundError:
+        print("No color mapping found?!")
+        colors = [None] * len(labels)
+    except KeyError:
+        print("Pokemon " + label + " has no mapping")
+        colors = [None] * len(labels)
 
     total_players = sum(sizes)
     percentages = [100 * v / total_players for v in sizes]
@@ -160,8 +170,13 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
             elif mons[j] in paradox_options:
                 mons[j+1] = mons[j] + "-" + mons[j+1]
             elif mons[j] == "Tera":
-                imgs.append(fetch_image(generate_image_url(pokemon="ogerpon")))
+                imgs.append(fetch_image(generate_image_url(pokemon="Ogerpon")))
                 imgs.append(fetch_image(generate_image_url(pokemon="Noctowl")))
+            elif mons[j] == "Tord" and mons[j+1] == "Box":
+                imgs.append(fetch_image(generate_image_url(pokemon="Absol", mega=True)))
+                imgs.append(fetch_image(generate_image_url(pokemon="Kangaskhan", mega=True)))
+            elif mons[j] == "Zacian":
+                imgs.append(fetch_image(generate_image_url(pokemon="Zacian", crown=True)))
             elif not mons[j].endswith("'s") and not mons[j] == "Box" and not mons[j] == "Team":
                 imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar)))
                 mega = False
