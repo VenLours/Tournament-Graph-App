@@ -24,6 +24,8 @@ def generate_image_url(pokemon, mega=False, paldean=False, galar=False, crown=Fa
         strr += "-galar"
     elif crown:
         strr += "-crowned"
+    elif strr == "other":
+        return "C:\\Users\\tomer\\PycharmProjects\\Tournament Graph App\\Set Logos\\subtitute.png"
     strr = "https://r2.limitlesstcg.net/pokemon/gen9/" + strr + ".png"
     return strr
 
@@ -66,7 +68,7 @@ def fetch_image(url_or_path):
         return None
 
 
-def combine_images_side_by_side(images, size=(45, 45)):
+def combine_images_side_by_side(images, size=(36, 36)):
     """Combines up to 3 PIL images side by side (resized)."""
     images = [img for img in images if img is not None]
     if not images:
@@ -145,10 +147,12 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
     # Plot slice images and percentage text
     for i, wedge in enumerate(wedges):
         angle = (wedge.theta2 + wedge.theta1) / 2
-        x_img = 0.7 * np.cos(np.deg2rad(angle))
-        y_img = 0.7 * np.sin(np.deg2rad(angle))
+        # addup = 0.11 * ((-1) ** (i%2))
+        addup = 0
+        x_img = (0.8-addup)* np.cos(np.deg2rad(angle))
+        y_img = (0.8-addup) * np.sin(np.deg2rad(angle))
         x_text = 1.2 * np.cos(np.deg2rad(angle))
-        y_text = 1.2 * np.sin(np.deg2rad(angle))
+        y_text = 1.1 * np.sin(np.deg2rad(angle))
 
         mons = labels[i].split(" ")
         imgs = []
@@ -175,9 +179,14 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
             elif mons[j] == "Tord" and mons[j+1] == "Box":
                 imgs.append(fetch_image(generate_image_url(pokemon="Absol", mega=True)))
                 imgs.append(fetch_image(generate_image_url(pokemon="Kangaskhan", mega=True)))
+            elif mons[j] == "Festival" and mons[j+1] == "Lead":
+                imgs.append(fetch_image(generate_image_url(pokemon="Dipplin")))
+                imgs.append(fetch_image(generate_image_url(pokemon="Thwackey")))
             elif mons[j] == "Zacian":
                 imgs.append(fetch_image(generate_image_url(pokemon="Zacian", crown=True)))
-            elif not mons[j].endswith("'s") and not mons[j] == "Box" and not mons[j] == "Team":
+            elif mons[j] == "Other":
+                imgs.append(fetch_image(generate_image_url(pokemon="Other")))
+            elif not mons[j].endswith("'s") and not mons[j] == "Box" and not mons[j] == "Team" and not mons[j] == "Lead":
                 imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar)))
                 mega = False
 
@@ -212,7 +221,7 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
     if center_image:
         center_img = fetch_image(center_image)
         if center_img:
-            center_scale = image_scale * 0.80  # 50% smaller
+            center_scale = image_scale * 0.75  # ASC - 0.75 ; MEG - 0.8 ; PFL - 0.7 ; Community - XX ; Limitless - 0.3
             imagebox = OffsetImage(center_img, zoom=center_scale)
             ab_center = AnnotationBbox(imagebox, (0, 0), frameon=False)
             ax.add_artist(ab_center)
@@ -221,11 +230,11 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
 
     # Add legend
 
-    ax.legend(
-        wedges, labels,
-        loc="center left",
-        bbox_to_anchor=(1.05, 0.5)
-    )
+    # ax.legend(
+    #     wedges[::-1], labels[::-1],
+    #     loc="center left",
+    #     bbox_to_anchor=(1.05, 0.5)
+    # )
 
     # Add total players text below the chart
     plt.figtext(0.5, 0.05, f"Total: {total_players} players", ha="center", fontsize=13, fontweight="bold")
