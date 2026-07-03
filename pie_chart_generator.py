@@ -14,7 +14,7 @@ import json
 # Helper Functions
 # =========================
 
-def generate_image_url(pokemon, mega=False, paldean=False, galar=False, crown=False):
+def generate_image_url(pokemon, mega=False, paldean=False, galar=False, crown=False, bloodmoon=False):
     strr = pokemon.lower()
     if mega:
         strr += "-mega"
@@ -24,6 +24,8 @@ def generate_image_url(pokemon, mega=False, paldean=False, galar=False, crown=Fa
         strr += "-galar"
     elif crown:
         strr += "-crowned"
+    elif bloodmoon:
+        strr += "-bloodmoon"
     elif strr == "other":
         return "C:\\Users\\tomer\\PycharmProjects\\Tournament Graph App\\Set Logos\\subtitute.png"
     strr = "https://r2.limitlesstcg.net/pokemon/gen9/" + strr + ".png"
@@ -125,7 +127,10 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
     total_players = sum(sizes)
     percentages = [100 * v / total_players for v in sizes]
 
-    fig, ax = plt.subplots(figsize=(9, 9))
+    # Fixed axes position -> the pie center is always at the same spot in the figure,
+    # regardless of the data. (Replaces plt.subplots + tight_layout.)
+    fig = plt.figure(figsize=(9, 9))
+    ax = fig.add_axes([0.1, 0.12, 0.8, 0.78])
 
     if background_image:
         bg_img = fetch_image(background_image)
@@ -159,6 +164,7 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
         mega = False
         paldean = False
         galar = False
+        bloodmoon = False
         paradox_options = ["Iron", "Great", "Scream", "Brute", "Flutter", "Slither", "Sandy", "Roaring", "Walking", "Gouging", "Raging"]
         for j in range(len(mons)):
             if mons[j] == "Mega":
@@ -184,11 +190,14 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
                 imgs.append(fetch_image(generate_image_url(pokemon="Thwackey")))
             elif mons[j] == "Zacian":
                 imgs.append(fetch_image(generate_image_url(pokemon="Zacian", crown=True)))
+            elif mons[j] == "Bloodmoon" and mons[j+1] == "Ursaluna":
+                bloodmoon = True
             elif mons[j] == "Other":
                 imgs.append(fetch_image(generate_image_url(pokemon="Other")))
             elif not mons[j].endswith("'s") and not mons[j] == "Box" and not mons[j] == "Team" and not mons[j] == "Lead":
-                imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar)))
+                imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar, bloodmoon=bloodmoon)))
                 mega = False
+                bloodmoon = False
 
 
 
@@ -239,8 +248,11 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
     # Add total players text below the chart
     plt.figtext(0.5, 0.05, f"Total: {total_players} players", ha="center", fontsize=13, fontweight="bold")
     ax.set(aspect="equal")
+    # Fixed data limits -> labels/images that stick out further for some datasets
+    # can no longer change the framing; the pie center stays put.
+    ax.set_xlim(-1.6, 1.6)
+    ax.set_ylim(-1.6, 1.6)
     fig.suptitle(title, fontsize=24, fontweight="bold", y=0.95)
-    plt.tight_layout(rect=[0, 0.08, 1, 1])
     if show:
         plt.show()
     return fig
@@ -310,8 +322,10 @@ def index():
         )
 
         # Save figure to memory and return as image
+        # NOTE: no bbox_inches="tight" -> output is always the full 9x9 figure,
+        # so the chart center lands on the same pixel every time.
         img_io = io.BytesIO()
-        fig.savefig(img_io, format="png", bbox_inches="tight")
+        fig.savefig(img_io, format="png")
         img_io.seek(0)
         plt.close(fig)
         return send_file(img_io, mimetype="image/png")
