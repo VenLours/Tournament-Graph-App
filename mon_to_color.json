@@ -32,7 +32,7 @@
   "Dragapult": "darkslateblue",
   "Marnie's Grimmsnarl": "hotpink",
   "Dragapult Charizard": "orangered",
-  "Mega Kangaskhan Bouffalant": "wheat",
+  "Mega Kangaskhan": "wheat",
   "Ogerpon Meganium": "teal",
   "Team Rocket's Honchkrow Porygon-Z": "red",
   "Greninja Pidgeot" : "peachpuff",
@@ -56,5 +56,15 @@
   "Crobat": "slateblue",
   "Delphox": "lightcoral",
   "Ampharos": "lemonchiffon",
-  "Mega Diancie Dusknoir": "hotpink"
+  "Mega Diancie Dusknoir": "hotpink",
+  "Slop Box": "#FFF4E8",
+  "Slowking" : "#eeaab4",
+  "Mega Charizard X Delphox": "#ffc067",
+  "Slowbro": "#eeaab4",
+  "Bastiodon": "darkgrey",
+  "Miraidon": "violet",
+  "Ghost Veil": "lavender",
+  "Toucannon Ogerpon-cornerstone": "mediumaquamarine",
+  "Mega Excadrill Metang": "coral",
+  "Mega Darkrai": "mediumseagreen"
 }

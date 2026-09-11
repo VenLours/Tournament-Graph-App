@@ -1,3 +1,5 @@
+from operator import truediv
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
@@ -14,10 +16,16 @@ import json
 # Helper Functions
 # =========================
 
-def generate_image_url(pokemon, mega=False, paldean=False, galar=False, crown=False, bloodmoon=False):
+def generate_image_url(pokemon, mega=False, paldean=False, galar=False, crown=False, bloodmoon=False, x_mega=False, y_mega=False, z_mega=False):
     strr = pokemon.lower()
     if mega:
         strr += "-mega"
+        if x_mega:
+            strr += "-x"
+        elif y_mega:
+            strr += "-y"
+        elif z_mega:
+            strr += "-z"
     elif paldean:
         strr += "-paldea"
     elif galar:
@@ -129,8 +137,8 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
 
     # Fixed axes position -> the pie center is always at the same spot in the figure,
     # regardless of the data. (Replaces plt.subplots + tight_layout.)
-    fig = plt.figure(figsize=(9, 9))
-    ax = fig.add_axes([0.1, 0.12, 0.8, 0.78])
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_axes([0.05, 0.05, 0.9, 0.9])
 
     if background_image:
         bg_img = fetch_image(background_image)
@@ -165,6 +173,9 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
         paldean = False
         galar = False
         bloodmoon = False
+        x_mega = False
+        y_mega = False
+        z_mega = False
         paradox_options = ["Iron", "Great", "Scream", "Brute", "Flutter", "Slither", "Sandy", "Roaring", "Walking", "Gouging", "Raging"]
         for j in range(len(mons)):
             if mons[j] == "Mega":
@@ -188,16 +199,38 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
             elif mons[j] == "Festival" and mons[j+1] == "Lead":
                 imgs.append(fetch_image(generate_image_url(pokemon="Dipplin")))
                 imgs.append(fetch_image(generate_image_url(pokemon="Thwackey")))
+            elif mons[j] == "Ghost" and mons[j+1] == "Veil":
+                imgs.append(fetch_image(generate_image_url(pokemon="Dhelmise")))
+                imgs.append(fetch_image(generate_image_url(pokemon="Sinistcha")))
+            elif mons[j] == "Slop" and mons[j+1] == "Box":
+                imgs.append(fetch_image(generate_image_url(pokemon="Clefairy")))
+                imgs.append(fetch_image(generate_image_url(pokemon="Ogerpon")))
             elif mons[j] == "Zacian":
                 imgs.append(fetch_image(generate_image_url(pokemon="Zacian", crown=True)))
             elif mons[j] == "Bloodmoon" and mons[j+1] == "Ursaluna":
                 bloodmoon = True
             elif mons[j] == "Other":
                 imgs.append(fetch_image(generate_image_url(pokemon="Other")))
+            elif mons[j] in ['Charizard', 'Raichu', 'Mewtow'] and mega:
+                if 'X' in mons:
+                    imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar, bloodmoon=bloodmoon, x_mega=True)))
+                elif 'Y' in mons:
+                    imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar, bloodmoon=bloodmoon, y_mega=True)))
+                else:
+                    imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar,
+                                                               bloodmoon=bloodmoon)))
+            elif mons[j] in ["Garcomp", "Lucario", "Absol"] and mega:
+                if 'Z' in mons:
+                    imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar,
+                                                               bloodmoon=bloodmoon, z_mega=True)))
+                else:
+                    imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar,
+                                                               bloodmoon=bloodmoon)))
             elif not mons[j].endswith("'s") and not mons[j] == "Box" and not mons[j] == "Team" and not mons[j] == "Lead":
-                imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar, bloodmoon=bloodmoon)))
+                imgs.append(fetch_image(generate_image_url(pokemon=mons[j], mega=mega, paldean=paldean, galar=galar, bloodmoon=bloodmoon, x_mega=x_mega, y_mega=y_mega, z_mega=z_mega)))
                 mega = False
                 bloodmoon = False
+
 
 
 
@@ -230,7 +263,7 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
     if center_image:
         center_img = fetch_image(center_image)
         if center_img:
-            center_scale = image_scale * 0.75  # ASC - 0.75 ; MEG - 0.8 ; PFL - 0.7 ; Community - XX ; Limitless - 0.3
+            center_scale = image_scale * 0.45  # ASC - 0.75 ; MEG - 0.8 ; PFL - 0.7 ; Community - XX ; Limitless - 0.3 ; PBL - 0.45
             imagebox = OffsetImage(center_img, zoom=center_scale)
             ab_center = AnnotationBbox(imagebox, (0, 0), frameon=False)
             ax.add_artist(ab_center)
@@ -250,8 +283,8 @@ def plot_pie_with_online_images(excel_path, image_scale=0.75, center_image=None,
     ax.set(aspect="equal")
     # Fixed data limits -> labels/images that stick out further for some datasets
     # can no longer change the framing; the pie center stays put.
-    ax.set_xlim(-1.6, 1.6)
-    ax.set_ylim(-1.6, 1.6)
+    ax.set_xlim(-1.4, 1.4)
+    ax.set_ylim(-1.4, 1.4)
     fig.suptitle(title, fontsize=24, fontweight="bold", y=0.95)
     if show:
         plt.show()
